@@ -47,17 +47,16 @@ namespace RobotsExtended
         {
             get
             {
-                return "https://github.com/v-xup6/Robots";
+                return "https://github.com/lin-ycv/RobotsExtended";
             }
         }
 
-        static readonly Version v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-        static internal readonly string Ver = v.Major + "." + v.Minor + "." + v.Build;
+        static readonly Version Ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
         public override string Version
         {
             get
             {
-                return Ver;
+                return Ver.ToString();
             }
         }
     }

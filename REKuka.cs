@@ -7,6 +7,7 @@ using Rhino;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using GH_IO.Serialization;
@@ -18,6 +19,7 @@ using System.ComponentModel;
 using System.Text.RegularExpressions;
 using Robots;
 using Robots.Commands;
+using Robots.Grasshopper;
 
 namespace RobotsExtended
 {
@@ -26,7 +28,7 @@ namespace RobotsExtended
         public DefJoints()
           : base("Define Joints", "DefJoints",
               "Define joint angle of each axis of the robot in degrees and outputs it as string of radians",
-              "Robots", "Util")
+              "Robots", "Utility")
         { }
         public override Guid ComponentGuid => new Guid("cd62f0e9-b8bc-49d9-b423-5e181b71f22f");
         protected override System.Drawing.Bitmap Icon => Properties.Resources.Define_Joints;
@@ -160,7 +162,7 @@ namespace RobotsExtended
         public RenderColour()
           : base("Render Colour", "Colour",
               "Adds render colour to robot mesh",
-              "Robots", "Util")
+              "Robots", "Utility")
         { }
         public override GH_Exposure Exposure => GH_Exposure.secondary | GH_Exposure.obscure;
 
@@ -219,7 +221,7 @@ namespace RobotsExtended
         public override Guid ComponentGuid => new Guid("5AE1E121-11B3-499A-AB30-82B02FAD533A");
     }
  
-    public class KukaMergeKRL : GH_Component
+    public class KukaMergeKRL : GH_Component, IGH_VariableParameterComponent
     {
         public KukaMergeKRL()
           : base("Merge KRL", "KRL",
@@ -232,6 +234,11 @@ namespace RobotsExtended
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Code", "C", "Code from create program", GH_ParamAccess.tree);
+        }
+
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            Menu_AppendItem(menu, "Save File", SaveInputs, true, save);
         }
 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
@@ -247,7 +254,6 @@ namespace RobotsExtended
             string prevApoCVEL = string.Empty;
 
             DA.GetDataTree(0, out GH_Structure<GH_String> code);
-            string name = string.Empty;
 
             List<string> header =
                 code.Branches[0][0].Value
@@ -317,16 +323,17 @@ namespace RobotsExtended
             }
 
             List<string> all = header.GetRange(0, 3);
-            name = all[2].Substring(3).Split(new string[] { "_T_ROB" }, StringSplitOptions.RemoveEmptyEntries)[0];
-            StringBuilder nameFix = new StringBuilder();
-            foreach (char c in name)
-            {
-                if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_')
-                    nameFix.Append(c);
-            }
-            name = !char.IsLetter(nameFix[0]) ?
-                "KUKA_" + nameFix.ToString().Substring(0, Math.Min(nameFix.Length, 19)) :
-                nameFix.ToString().Substring(0, Math.Min(nameFix.Length, 24));
+            string name = all[2].Substring(4).Split(new string[] { "_T_ROB" }, StringSplitOptions.RemoveEmptyEntries)[0];
+            // Check implemented in new version of robots
+            //StringBuilder nameFix = new StringBuilder();
+            //foreach (char c in name)
+            //{
+            //    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_')
+            //        nameFix.Append(c);
+            //}
+            //name = !char.IsLetter(nameFix[0]) ?
+            //    "KUKA_" + nameFix.ToString().Substring(0, Math.Min(nameFix.Length, 19)) :
+            //    nameFix.ToString().Substring(0, Math.Min(nameFix.Length, 24));
 
             all[2] = "DEF " + name + "()";
             all.Add("\r\n;DAT DECL");
@@ -339,8 +346,71 @@ namespace RobotsExtended
             all.AddRange(header.GetRange(3, header.Count - 3));
             all.AddRange(main);
 
+            bool S = false;
+            if (save && DA.GetData(2, ref S))
+            {
+                string P = string.Empty;
+                DA.GetData(1, ref P);
+
+                if (string.IsNullOrEmpty(P))
+                    P = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                if (S)
+                {
+                    try
+                    {
+                        string path = Path.Combine(P, name + ".src");
+                        File.WriteAllLines(path, all);
+                        error = false;
+                        msg = DateTime.Now.ToString("HH:mm:ss") + " Saved as " + name + ".src\n@" + path;
+                    }
+                    catch (Exception e)
+                    {
+                        error = true;
+                        msg = e.Message;
+                    }
+                }
+                AddRuntimeMessage(error ? GH_RuntimeMessageLevel.Error : GH_RuntimeMessageLevel.Remark, msg);
+            }
+
             DA.SetData(0, name + ".src");
             DA.SetDataList(1, all);
+        }
+        bool error = false;
+        string msg = string.Empty;
+
+        bool IGH_VariableParameterComponent.CanInsertParameter(GH_ParameterSide side, int index) => false;
+        bool IGH_VariableParameterComponent.CanRemoveParameter(GH_ParameterSide side, int index) => false;
+        IGH_Param IGH_VariableParameterComponent.CreateParameter(GH_ParameterSide side, int index) => null;
+        bool IGH_VariableParameterComponent.DestroyParameter(GH_ParameterSide side, int index) => false;
+        void IGH_VariableParameterComponent.VariableParameterMaintenance() { }
+        bool save = false;
+        readonly Param_String param = new Param_String { Name = "Directory", NickName = "P", Description = "Specify Path where file will be saved\nIf not specified, will try to save to Desktop", Optional = true };
+        readonly Param_Boolean param2 = new Param_Boolean { Name = "Save", NickName = "S", Description = "Button or toggle to specify saving", Optional = false };
+        private void SaveInputs(object sender, EventArgs e)
+        {
+            save = !save;
+            if (save)
+            {
+                Params.RegisterInputParam(param);
+                Params.RegisterInputParam(param2);
+            }
+            else
+            {
+                for(int i =2;i>0; i--)
+                    Params.UnregisterInputParameter(Params.Input[i], true);
+            }
+            Params.OnParametersChanged();
+            ExpireSolution(true);
+        }
+        public override bool Write(GH_IWriter writer)
+        {
+            writer.SetBoolean("ShowSave", save);
+            return base.Write(writer);
+        }
+        public override bool Read(GH_IReader reader)
+        {
+            save = reader.GetBoolean("ShowSave");
+            return base.Read(reader);
         }
         protected override System.Drawing.Bitmap Icon => Properties.Resources.KRL;
         public override Guid ComponentGuid => new Guid("309454cf-ea5e-470f-80a8-fc19e3729dfc");
@@ -767,7 +837,7 @@ namespace RobotsExtended
     }
     /*public class KukaTCPresponse : GH_Component
     {
-        public KukaTCPresponse() : base("Deconstruct TCP (AXIS)", "DeAXIS", "Deconstruct the KeepAlive response of Remote KUKA to get axis angles", "Robots", "Util") { }
+        public KukaTCPresponse() : base("Deconstruct TCP (AXIS)", "DeAXIS", "Deconstruct the KeepAlive response of Remote KUKA to get axis angles", "Robots", "Utility") { }
         public override GH_Exposure Exposure => GH_Exposure.hidden;
         public override Guid ComponentGuid => new Guid("7EC30372-DF94-4380-B713-4F0EA7AD8899");
 
@@ -830,44 +900,42 @@ namespace RobotsExtended
     }
     */
 
-    //public class UpdateTool : GH_Component
-    //{
-    //    public UpdateTool() : base("Update Tool", "newTCP", "Update the TCP of an exsisting tool", "Robots", "Util") { }
-    //    //public override GH_Exposure Exposure => GH_Exposure.hidden;
-    //    protected override System.Drawing.Bitmap Icon => Properties.Resources.UpdateTool;
-    //    public override Guid ComponentGuid => new Guid("92915A29-8636-4670-B21C-756D681789E4");
+    public class UpdateTool : GH_Component
+    {
+        public UpdateTool() : base("Update Tool", "newTCP", "Update the TCP of an exsisting tool", "Robots", "Utility") { }
+        //public override GH_Exposure Exposure => GH_Exposure.hidden;
+        protected override System.Drawing.Bitmap Icon => Properties.Resources.UpdateTool;
+        public override Guid ComponentGuid => new Guid("92915A29-8636-4670-B21C-756D681789E4");
 
-    //    protected override void RegisterInputParams(GH_InputParamManager pManager)
-    //    {
-    //        pManager.AddGenericParameter( "GH_Tool", "T", "Tool to update TCP location", GH_ParamAccess.item) ;
-    //        pManager.AddPlaneParameter("TCP", "P", "New TCP to use", GH_ParamAccess.item);
-    //    }
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        {
+            pManager.AddGenericParameter("GH_Tool", "T", "Tool to update TCP location", GH_ParamAccess.item);
+            pManager.AddPlaneParameter("TCP", "P", "New TCP to use", GH_ParamAccess.item);
+        }
 
-    //    protected override void RegisterOutputParams(GH_OutputParamManager pManager)
-    //    {
-    //        pManager.AddGenericParameter("Tool", "T", "Tool", GH_ParamAccess.item) ;
-    //        pManager.AddMeshParameter("Mesh", "M", "Mesh of Tool", GH_ParamAccess.item);
-    //    }
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+        {
+            pManager.AddGenericParameter("Tool", "T", "Tool", GH_ParamAccess.item);
+        }
 
-    //    protected override void SolveInstance(IGH_DataAccess DA)
-    //    {
-    //        dynamic input = null;
-    //        Plane tcp = new Plane();
-    //        DA.GetData(0, ref input);
-    //        DA.GetData(1, ref tcp);
+        protected override void SolveInstance(IGH_DataAccess DA)
+        {
+            GH_Tool input = null;
+            Plane tcp = new Plane();
+            DA.GetData(0, ref input);
+            DA.GetData(1, ref tcp);
 
-    //        var o = input.Value;
+            var o = input.Value;
 
-    //        Tool tool = new Tool(tcp, o.Name, o.Weight, o.Centroid, o.Mesh);
+            Tool tool = new Tool(tcp, o.Name, o.Weight, o.Centroid, o.Mesh);
 
-    //        DA.SetData(0, tool);
-    //        //DA.SetData(1, ((Tool)orgTool).Mesh);
-    //    }
-    //}
+            DA.SetData(0, tool);
+        }
+    }
 
     public class DeconstructTool : GH_Component
     {
-        public DeconstructTool() : base("Deconstruct Tool", "DeTool", "Retrieves properties of an exsisting tool", "Robots", "Util") { }
+        public DeconstructTool() : base("Deconstruct Tool", "DeTool", "Retrieves properties of an exsisting tool", "Robots", "Utility") { }
         protected override System.Drawing.Bitmap Icon => Properties.Resources.DeTool;
         public override Guid ComponentGuid => new Guid("753CDC90-7278-45C4-91D4-B476BA34D396");
         readonly string tName = nameof(tName);

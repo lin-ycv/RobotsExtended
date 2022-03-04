@@ -6,6 +6,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartAction>Program</StartAction>
     <StartProgram>C:\Program Files\Rhino 7\System\Rhino.exe</StartProgram>
-    <StartArguments>/nosplash /notemplate /runscript="_-Grasshopper Banner Disable Window Load Window Show _Enter"</StartArguments>
+    <StartArguments>-nosplash -notemplate /runscript="_-Grasshopper Banner Disable Window Load Window Show _Enter"</StartArguments>
   </PropertyGroup>
 </Project>
