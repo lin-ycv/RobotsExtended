@@ -20,6 +20,7 @@ using System.Text.RegularExpressions;
 using Robots;
 using Robots.Commands;
 using Robots.Grasshopper;
+using System.Security.Cryptography;
 
 namespace RobotsExtended
 {
@@ -239,6 +240,7 @@ namespace RobotsExtended
         protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
         {
             Menu_AppendItem(menu, "Save File", SaveInputs, true, save);
+            Menu_AppendItem(menu, "Fold", (s, e) => { fold = !fold; ExpireSolution(true); }, true, fold); ;
         }
 
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
@@ -276,7 +278,10 @@ namespace RobotsExtended
 
             List<string> main = new List<string>();
             main.AddRange(prog);
-            main.Insert(2, "\r\n;START PROG");
+            if(fold)
+                main.Insert(2, "\r\n;FOLD");
+            else
+                main.Insert(2, "\r\n;START PROG");
 
             for (int i = 0; i < main.Count; i++)
             {
@@ -321,19 +326,11 @@ namespace RobotsExtended
                     }
                 }
             }
+            if (fold)
+                main.Insert(main.Count-1,";ENDFOLD");
 
             List<string> all = header.GetRange(0, 3);
             string name = all[2].Substring(4).Split(new string[] { "_T_ROB" }, StringSplitOptions.RemoveEmptyEntries)[0];
-            // Check implemented in new version of robots
-            //StringBuilder nameFix = new StringBuilder();
-            //foreach (char c in name)
-            //{
-            //    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_')
-            //        nameFix.Append(c);
-            //}
-            //name = !char.IsLetter(nameFix[0]) ?
-            //    "KUKA_" + nameFix.ToString().Substring(0, Math.Min(nameFix.Length, 19)) :
-            //    nameFix.ToString().Substring(0, Math.Min(nameFix.Length, 24));
 
             all[2] = "DEF " + name + "()";
             all.Add("\r\n;DAT DECL");
@@ -384,6 +381,7 @@ namespace RobotsExtended
         bool IGH_VariableParameterComponent.DestroyParameter(GH_ParameterSide side, int index) => false;
         void IGH_VariableParameterComponent.VariableParameterMaintenance() { }
         bool save = false;
+        bool fold = false;
         readonly Param_String param = new Param_String { Name = "Directory", NickName = "P", Description = "Specify Path where file will be saved\nIf not specified, will try to save to Desktop", Optional = true };
         readonly Param_Boolean param2 = new Param_Boolean { Name = "Save", NickName = "S", Description = "Button or toggle to specify saving", Optional = false };
         private void SaveInputs(object sender, EventArgs e)
@@ -405,11 +403,13 @@ namespace RobotsExtended
         public override bool Write(GH_IWriter writer)
         {
             writer.SetBoolean("ShowSave", save);
+            writer.SetBoolean("FoldKRL", fold);
             return base.Write(writer);
         }
         public override bool Read(GH_IReader reader)
         {
             save = reader.GetBoolean("ShowSave");
+            fold = reader.GetBoolean("FoldKRL");
             return base.Read(reader);
         }
         protected override System.Drawing.Bitmap Icon => Properties.Resources.KRL;
@@ -900,7 +900,7 @@ namespace RobotsExtended
     }
     */
 
-    public class UpdateTool : GH_Component
+    public class UpdateTool : GH_Component, IGH_VariableParameterComponent
     {
         public UpdateTool() : base("Update Tool", "newTCP", "Update the TCP of an exsisting tool", "Robots", "Utility") { }
         //public override GH_Exposure Exposure => GH_Exposure.hidden;
@@ -913,24 +913,74 @@ namespace RobotsExtended
             pManager.AddPlaneParameter("TCP", "P", "New TCP to use", GH_ParamAccess.item);
         }
 
+        protected override void AppendAdditionalComponentMenuItems(ToolStripDropDown menu)
+        {
+            Menu_AppendItem(menu, "Use Controller Values", ChangeInput, true, controller);
+        }
+
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Tool", "T", "Tool", GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
-        {
+        { 
             GH_Tool input = null;
-            Plane tcp = new Plane();
             DA.GetData(0, ref input);
+            Plane tcp = new Plane();
             DA.GetData(1, ref tcp);
+            int? no = null;
+            if(controller)
+                DA.GetData(2, ref no);
 
-            var o = input.Value;
-
-            Tool tool = new Tool(tcp, o.Name, o.Weight, o.Centroid, o.Mesh);
+            GH_Tool tool = new GH_Tool(
+                new Tool(
+                    tcp, 
+                    input.Value.Name, 
+                    input.Value.Weight, 
+                    input.Value.Centroid, 
+                    input.Value.Mesh, 
+                    null, 
+                    controller,
+                    no
+                    )
+                );
 
             DA.SetData(0, tool);
         }
+        private void ChangeInput(object sender, EventArgs e)
+        {
+            controller = !controller;
+            if (controller)
+            {
+                IGH_Param p = new Param_Integer { Name = "Tool Number", NickName = "N", Description = "Tool number in controller", Optional = false };
+                Params.RegisterInputParam(p);
+            }
+            else
+            {
+                Params.UnregisterInputParameter(Params.Input[2], true);
+            }
+            Params.OnParametersChanged();
+            ExpireSolution(true);
+        }
+        public override bool Write(GH_IWriter writer)
+        {
+            writer.SetBoolean("IsCtrl", controller);
+            return base.Write(writer);
+        }
+        public override bool Read(GH_IReader reader)
+        {
+            controller = reader.GetBoolean("IsCtrl");
+            return base.Read(reader);
+        }
+
+        bool IGH_VariableParameterComponent.CanInsertParameter(GH_ParameterSide side, int index) => false;
+        bool IGH_VariableParameterComponent.CanRemoveParameter(GH_ParameterSide side, int index) => false;
+        IGH_Param IGH_VariableParameterComponent.CreateParameter(GH_ParameterSide side, int index) => null;
+        bool IGH_VariableParameterComponent.DestroyParameter(GH_ParameterSide side, int index) => false;
+        void IGH_VariableParameterComponent.VariableParameterMaintenance() { }
+
+        bool controller = false;
     }
 
     public class DeconstructTool : GH_Component
@@ -943,6 +993,7 @@ namespace RobotsExtended
         readonly string Weight = nameof(Weight);
         readonly string Centroid = nameof(Centroid);
         readonly string Mesh = nameof(Mesh);
+        readonly string Number = nameof(Number);
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
@@ -956,20 +1007,21 @@ namespace RobotsExtended
             pManager.AddNumberParameter(Weight, "W", "Tool weight in kg", GH_ParamAccess.item);
             pManager.AddPointParameter(Centroid, "C", "Optional tool center of mass", GH_ParamAccess.item);
             pManager.AddMeshParameter(Mesh, "M", "Tool geometry", GH_ParamAccess.item);
+            pManager.AddIntegerParameter(Number, "#", "Tool # in controller", GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            dynamic input = null;
+            GH_Tool input = null;
             DA.GetData(0, ref input);
 
-            var t = input.Value;
-
-            DA.SetData(tName, t.Name);
-            DA.SetData(TCP, t.Tcp);
-            DA.SetData(Weight, t.Weight);
-            DA.SetData(Centroid, t.Centroid);
-            DA.SetData(Mesh, t.Mesh);
+            DA.SetData(tName, input.Value.Name);
+            DA.SetData(TCP, input.Value.Tcp);
+            DA.SetData(Weight, input.Value.Weight);
+            DA.SetData(Centroid, input.Value.Centroid);
+            DA.SetData(Mesh, input.Value.Mesh);
+            DA.SetData(Number, input.Value.Number);
         }
+
     }
 }
