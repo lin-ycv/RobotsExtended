@@ -1,0 +1,14 @@
+---
+name: RobotsExtended
+version: $version
+authors:
+- Victor (Yu Chieh) Lin
+description: Extension for Robots plugin
+url: https://github.com/lin-ycv/RobotsExtended
+keywords:
+- Robots
+- Robot
+- RobotsExtended
+- Extended
+- Kuka
+icon: icon.png
