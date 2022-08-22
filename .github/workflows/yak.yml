@@ -30,4 +30,4 @@ jobs:
           cd yakPackage
           ..\yak.exe build --platform 'any'
           $YAK_FILENAME = dir *.yak 
-          ..\yak.exe push --source https://test.yak.rhino3d.com $YAK_FILENAME.Name
+          ..\yak.exe push $YAK_FILENAME.Name
