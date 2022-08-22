@@ -1,0 +1,33 @@
+name: Push to Yak on Release
+
+on:
+  release:
+    type: [published]
+    
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      YAK_TOKEN: ${{ secrets.YAK_TOKEN }} 
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: yak
+
+      - name: Run a multi-line script
+        run: |
+          $response=curl.exe -s https://api.github.com/repos/lin-ycv/RobotsExtended/releases/latest
+          $browser=($response | select-string "browser_").Line
+          $url=$browser.Split("`"")[3]
+          Invoke-WebRequest $url -O re.gha
+          Invoke-WebRequest https://rawcdn.githack.com/lin-ycv/RobotsExtended/de8699c4baea24a4dfe342a0cf84808f4b13f79b/Resources/iconRobot.png -O icon.png
+          robocopy /mov . .\yakPackage
+          curl https://files.mcneel.com/yak/tools/latest/yak.exe -o yak.exe
+          cd yakPackage
+          ..\yak.exe build --platform 'any'
+          $YAK_FILENAME = dir *.yak 
+          ..\yak.exe push --source https://test.yak.rhino3d.com $YAK_FILENAME.Name
