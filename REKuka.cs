@@ -221,7 +221,7 @@ namespace RobotsExtended
         protected override System.Drawing.Bitmap Icon => Properties.Resources.Colourful;
         public override Guid ComponentGuid => new Guid("5AE1E121-11B3-499A-AB30-82B02FAD533A");
     }
- 
+
     public class KukaMergeKRL : GH_Component, IGH_VariableParameterComponent
     {
         public KukaMergeKRL()
@@ -262,9 +262,11 @@ namespace RobotsExtended
                 .Split(new string[] { "\r\n", "\r", "\n", Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
             Dictionary<string, string> declare = new Dictionary<string, string>();
             List<string> prog = new List<string>();
-            for (int i = 1; i < code.Branches[1].Count - 1; i++)// Skip RVP+REL and ENDDAT
+            List<string> declOrg = string.Join(Environment.NewLine, code.Branches[1].Select(x => x.Value)).Split(new string[] { "\r\n", "\r", "\n", Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList(); ;
+            for (int i = 1; i < declOrg.Count - 1; i++)// Skip RVP+REL and ENDDAT
             {
-                string[] de = code.Branches[1][i].Value.Split(new string[] { " = ", " =", "= ", "=" }, StringSplitOptions.RemoveEmptyEntries);
+                if (!declOrg[i].Contains("DECL")) continue;
+                string[] de = declOrg[i].Split(new string[] { " = ", " =", "= ", "=" }, StringSplitOptions.RemoveEmptyEntries);
                 de[0] = de[0].Replace("GLOBAL ", string.Empty);
                 if (de[0].Contains("Zonev")) cvel = true;
                 if (de[0].Contains("Zone000")) trigger = true;
@@ -278,7 +280,7 @@ namespace RobotsExtended
 
             List<string> main = new List<string>();
             main.AddRange(prog);
-            if(fold)
+            if (fold)
                 main.Insert(2, "\r\n;FOLD");
             else
                 main.Insert(2, "\r\n;START PROG");
@@ -327,7 +329,7 @@ namespace RobotsExtended
                 }
             }
             if (fold)
-                main.Insert(main.Count-1,";ENDFOLD");
+                main.Insert(main.Count - 1, ";ENDFOLD");
 
             List<string> all = header.GetRange(0, 3);
             string name = all[2].Substring(4).Split(new string[] { "_T_ROB" }, StringSplitOptions.RemoveEmptyEntries)[0];
@@ -394,7 +396,7 @@ namespace RobotsExtended
             }
             else
             {
-                for(int i =2;i>0; i--)
+                for (int i = 2; i > 0; i--)
                     Params.UnregisterInputParameter(Params.Input[i], true);
             }
             Params.OnParametersChanged();
@@ -924,23 +926,23 @@ namespace RobotsExtended
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
-        { 
+        {
             GH_Tool input = null;
             DA.GetData(0, ref input);
             Plane tcp = new Plane();
             DA.GetData(1, ref tcp);
             int? no = null;
-            if(controller)
+            if (controller)
                 DA.GetData(2, ref no);
 
             GH_Tool tool = new GH_Tool(
                 new Tool(
-                    tcp, 
-                    input.Value.Name, 
-                    input.Value.Weight, 
-                    input.Value.Centroid, 
-                    input.Value.Mesh, 
-                    null, 
+                    tcp,
+                    input.Value.Name,
+                    input.Value.Weight,
+                    input.Value.Centroid,
+                    input.Value.Mesh,
+                    null,
                     controller,
                     no
                     )
@@ -1023,5 +1025,36 @@ namespace RobotsExtended
             DA.SetData(Number, input.Value.Number);
         }
 
+    }
+
+    public class UpdateFrame : GH_Component
+    {
+        public UpdateFrame() : base("Update Frame", "newBase", "Update frame info", "Robots", "Utility") { }
+        public override Guid ComponentGuid => new Guid("{3BAA462A-7D1B-401A-B789-2E12B878B6AD}");
+        protected override System.Drawing.Bitmap Icon => Properties.Resources.UpdateTool;
+
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
+        {
+            pManager.AddGenericParameter("Frame", "F", "Frame to configure", GH_ParamAccess.item);
+            pManager.AddPlaneParameter("Plane", "P", "New frame", GH_ParamAccess.item, Plane.Unset);
+            pManager.AddIntegerParameter("Base", "B", "Base number to read from, -1 to hard-code", GH_ParamAccess.item, -1);
+        }
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
+        {
+            pManager.AddGenericParameter("Frame", "F", "Frame", GH_ParamAccess.item);
+        }
+
+        protected override void SolveInstance(IGH_DataAccess DA)
+        {
+            Frame frame = null;
+            Plane plane = Plane.Unset;
+            int? number = null;
+            DA.GetData(0, ref frame);
+            DA.GetData(1, ref plane);
+            DA.GetData(2, ref number);
+            if (number < 0) number = null;
+            Frame uFrame = new Frame(plane==Plane.Unset?frame.Plane:plane, frame.CoupledMechanism, frame.CoupledMechanicalGroup, frame.HasName? frame.Name:null, number.HasValue, number);
+            DA.SetData(0, uFrame);
+        }
     }
 }
