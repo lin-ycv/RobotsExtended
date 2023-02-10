@@ -2,7 +2,7 @@ name: Push to Yak on Release
 
 on:
   release:
-    type: [published]
+    types: [published]
     
   workflow_dispatch:
 
