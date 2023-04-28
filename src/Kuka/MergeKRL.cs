@@ -172,13 +172,14 @@ namespace RobotsExtended.Kuka
         bool IGH_VariableParameterComponent.CanRemoveParameter(GH_ParameterSide side, int index) => false;
         IGH_Param IGH_VariableParameterComponent.CreateParameter(GH_ParameterSide side, int index) => null;
         bool IGH_VariableParameterComponent.DestroyParameter(GH_ParameterSide side, int index) => false;
-        void IGH_VariableParameterComponent.VariableParameterMaintenance() { }
+        void IGH_VariableParameterComponent.VariableParameterMaintenance() {}
         bool save = false;
         bool fold = false;
         readonly Param_String param = new Param_String { Name = "Directory", NickName = "P", Description = "Specify Path where file will be saved\nIf not specified, will try to save to Desktop", Optional = true };
         readonly Param_Boolean param2 = new Param_Boolean { Name = "Save", NickName = "S", Description = "Button or toggle to specify saving", Optional = false };
         private void SaveInputs(object sender, EventArgs e)
         {
+            RecordUndoEvent("Enable/disable Save param");
             save = !save;
             if (save)
             {

@@ -47,6 +47,7 @@
     </Compile>
     <Compile Include="RobotsExtendedInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="src\Kuka\MxAutomation.cs" />
     <Compile Include="src\Util\RenderColour.cs" />
     <Compile Include="src\Util\RotateEuler.cs" />
     <Compile Include="src\Util\UpdateFrame.cs" />
@@ -90,25 +91,32 @@
   <ItemGroup>
     <Reference Include="Eto, Version=2.6.0.0, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>packages\RhinoCommon.7.14.22010.17001\lib\net48\Eto.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="GH_IO, Version=7.14.22010.17000, Culture=neutral, PublicKeyToken=6a29997d2e6b4f97, processorArchitecture=MSIL">
       <HintPath>packages\Grasshopper.7.14.22010.17001\lib\net48\GH_IO.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Grasshopper, Version=7.14.22010.17000, Culture=neutral, PublicKeyToken=dda4f5ec2cd80803, processorArchitecture=MSIL">
       <HintPath>packages\Grasshopper.7.14.22010.17001\lib\net48\Grasshopper.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Rhino.UI, Version=7.14.22010.17000, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>packages\RhinoCommon.7.14.22010.17001\lib\net48\Rhino.UI.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="RhinoCommon, Version=7.14.22010.17000, Culture=neutral, PublicKeyToken=552281e97c755530, processorArchitecture=MSIL">
       <HintPath>packages\RhinoCommon.7.14.22010.17001\lib\net48\RhinoCommon.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="Robots, Version=1.6.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Robots.Rhino.1.6.1\lib\net48\Robots.dll</HintPath>
+    <Reference Include="Robots, Version=1.6.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Robots.Rhino.1.6.5\lib\net48\Robots.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="Robots.Grasshopper, Version=1.6.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Robots.Rhino.1.6.1\lib\net48\Robots.Grasshopper.dll</HintPath>
+    <Reference Include="Robots.Grasshopper, Version=1.6.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>packages\Robots.Rhino.1.6.5\lib\net48\Robots.Grasshopper.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
@@ -131,8 +139,8 @@ Erase "$(TargetPath)"
 if $(ConfigurationName) == Release (
  del /Q "$(TargetDir)*.config"
  del /Q "$(TargetDir)*.pdb"
-)
-rmdir /S /Q "$(TargetDir)\..\obj"</PostBuildEvent>
+ rmdir /S /Q "$(TargetDir)\..\obj"
+)</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <FallbackCulture>en-US</FallbackCulture>

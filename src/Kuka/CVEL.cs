@@ -12,7 +12,7 @@ namespace RobotsExtended.Kuka
     {
         public CVEL()
           : base("Speed Approximation", "CVEL",
-              "Commands the robot to maintain defined speed percentage by zoning (Custom Command)",
+              "Commands the robot to maintain defined speed percentage by zoning (Custom Command)\r\nShould be the first command if in a command group",
               "Robots", "Commands")
         { }
         public override GH_Exposure Exposure => GH_Exposure.secondary;

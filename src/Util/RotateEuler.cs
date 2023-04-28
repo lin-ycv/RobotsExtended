@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Rhino.Render.Dithering;
 
 namespace RobotsExtended.Util
 {
@@ -17,13 +18,13 @@ namespace RobotsExtended.Util
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "Geo", "Geometry or plane to rotate", GH_ParamAccess.item);
-            pManager.AddPlaneParameter("Rotation Plane", "Pln", "Plane to use for center or rotation", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Z-Axis", "A", "Degree of rotation on Z-Axis", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Y-Axis", "B", "Degree of rotation on Y-Axis", GH_ParamAccess.item);
-            pManager.AddNumberParameter("X-Axis", "C", "Degree of rotation on X-Axis", GH_ParamAccess.item);
+            // Switched to list input for better performance
+            pManager.AddGeometryParameter("Geometry", "Geo", "Geometry or plane to rotate", GH_ParamAccess.list);
+            pManager.AddPlaneParameter("Rotation Plane", "Pln", "Plane to use for center or rotation", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Z-Axis", "A", "Degree of rotation on Z-Axis", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Y-Axis", "B", "Degree of rotation on Y-Axis", GH_ParamAccess.list);
+            pManager.AddNumberParameter("X-Axis", "C", "Degree of rotation on X-Axis", GH_ParamAccess.list);
             pManager[0].Optional = true;
-            pManager[1].Optional = true;
             pManager[2].Optional = true;
             pManager[3].Optional = true;
             pManager[4].Optional = true;
@@ -31,48 +32,45 @@ namespace RobotsExtended.Util
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Geometry", "G", "Rotated geometry", GH_ParamAccess.item);
-            pManager.AddTransformParameter("Transform", "X", "Transformation data", GH_ParamAccess.item);
+            pManager.AddGeometryParameter("Geometry", "G", "Rotated geometry", GH_ParamAccess.list);
+            pManager.AddTransformParameter("Transform", "X", "Transformation data", GH_ParamAccess.list);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            IGH_GeometricGoo geo = null;
-            Plane pln = Plane.Unset;
-            double a = 0, b = 0, c = 0;
-            DA.GetData(0, ref geo);
-            DA.GetData(1, ref pln);
-            DA.GetData(2, ref a);
-            DA.GetData(3, ref b);
-            DA.GetData(4, ref c);
-            if (geo != null)
-                geo = geo.DuplicateGeometry();
-            if (pln == Plane.Unset && geo is GH_Plane p)
-            {
-                GH_Convert.ToPlane(p, ref pln, GH_Conversion.Both);
-            }
-            else if (geo == null && pln != Plane.Unset)
-            {
-                geo = GH_Convert.ToGeometricGoo(pln);
-            }
-            else if (pln == Plane.Unset || geo == null)
-            {
-                string e;
-                if (pln == Plane.Unset)
-                    e = Grasshopper.CentralSettings.CanvasFullNames ? Params.Input[1].Name : Params.Input[1].NickName;
-                else
-                    e = Grasshopper.CentralSettings.CanvasFullNames ? Params.Input[0].Name : Params.Input[0].NickName;
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"Input parameter {e} failed to collect data");
-                return;
-            }
+            List<IGH_GeometricGoo> geo = new List<IGH_GeometricGoo>();
+            List<Plane> pln = new List<Plane>();
+            List<double>[] ro = new List<double>[3] { new List<double>(), new List<double>(), new List<double>() };
 
+            DA.GetDataList(0, geo);
+            DA.GetDataList(1, pln);
+            DA.GetDataList(2, ro[0]);
+            DA.GetDataList(3, ro[1]);
+            DA.GetDataList(4, ro[2]);
+
+            for (int i = 0; i < geo.Count; i++) 
+                geo[i] = geo[i].DuplicateGeometry();
+            if (geo.Count == 0 && pln.Count > 0)
+                geo.AddRange(pln.Select(p=> GH_Convert.ToGeometricGoo(p)));
+            for(int i = 0; i < ro.Length; i++)
+                if (!ro[i].Any())
+                    ro[i].Add(0);
+
+            List<Transform> transforms = new List<Transform>();
             double r = Math.PI / 180;
-            Transform x = Transform.Rotation(a * r, pln.ZAxis, pln.Origin);
-            x *= Transform.Rotation(b * r, pln.YAxis, pln.Origin);
-            x *= Transform.Rotation(c * r, pln.XAxis, pln.Origin);
+            for (int i = 0; i < pln.Count; i++)
+            {
+                if (i > geo.Count) break;
+                Transform x = Transform.Rotation(ro[0][Math.Min(i, ro[0].Count-1)] * r, pln[i].ZAxis, pln[i].Origin);
+                x *= Transform.Rotation(ro[1][Math.Min(i, ro[1].Count - 1)] * r, pln[i].YAxis, pln[i].Origin);
+                x *= Transform.Rotation(ro[2][Math.Min(i, ro[2].Count - 1)] * r, pln[i].XAxis, pln[i].Origin);
+                transforms.Add(x);
+                geo[i].Transform(x);
+            }
+            
 
-            DA.SetData(0, geo.Transform(x));
-            DA.SetData(1, x);
+            DA.SetDataList(0, geo);
+            DA.SetDataList(1,transforms);
         }
     }
 

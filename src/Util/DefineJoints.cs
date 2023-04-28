@@ -85,6 +85,7 @@ namespace RobotsExtended.Util
         }
         private void ChangeInput(object sender, EventArgs e)
         {
+            RecordUndoEvent("Toggle params");
             external = !external;
             if (external)
             {
@@ -142,7 +143,7 @@ namespace RobotsExtended.Util
         };
         readonly int[,] limits = new int[2, 6]
         {
-            {-185,-35,-120,-68,-119,-350},
+            {-185,-35,-68,-185,-119,-350},
             { 185, 135, 210, 185, 119, 350},
         };
     }
