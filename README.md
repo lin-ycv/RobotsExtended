@@ -3,4 +3,4 @@
 An extension to the [robots plugin](https://github.com/visose/Robots). To be use alongside of Robots, not in-place of.<br>
 Extensions currently only for KUKA's
 
-* Download both Robots and RobotsExtended using `_PackageManager` in **Rhino 7**
+* Download both Robots and RobotsExtended using `_PackageManager`

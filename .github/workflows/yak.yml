@@ -23,11 +23,14 @@ jobs:
           $response=curl.exe -s https://api.github.com/repos/lin-ycv/RobotsExtended/releases/latest
           $browser=($response | select-string "browser_").Line
           $url=$browser.Split("`"")[3]
-          Invoke-WebRequest $url -O re.gha
-          Invoke-WebRequest https://rawcdn.githack.com/lin-ycv/RobotsExtended/de8699c4baea24a4dfe342a0cf84808f4b13f79b/Resources/iconRobot.png -O icon.png
+          Invoke-WebRequest $url -OutFile re.gha
+          Invoke-WebRequest https://rawcdn.githack.com/lin-ycv/RobotsExtended/de8699c4baea24a4dfe342a0cf84808f4b13f79b/Resources/iconRobot.png -OutFile icon.png
           robocopy /mov . .\yakPackage
           curl https://files.mcneel.com/yak/tools/latest/yak.exe -o yak.exe
           cd yakPackage
           ..\yak.exe build --platform 'any'
-          $YAK_FILENAME = dir *.yak 
-          ..\yak.exe push $YAK_FILENAME.Name
+          $YAK_FILENAME = dir *.yak         
+          $name = $YAK_FileNAME.name.Split("-")
+          $name = $name[0]+"-"+$name[1]+"-any-any.yak"
+          Rename-Item $YAK_FileNAME.name $name
+          ..\yak.exe push $name

@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Grasshopper.Kernel.Geometry;
+using Robots;
 
 namespace RobotsExtended.Util
 {
@@ -19,7 +21,7 @@ namespace RobotsExtended.Util
               "Define joint angle of each axis of the robot in degrees and outputs it as string of radians",
               "Robots", "Utility")
         { }
-        public override Guid ComponentGuid => new Guid("cd62f0e9-b8bc-49d9-b423-5e181b71f22f");
+        public override Guid ComponentGuid => new("cd62f0e9-b8bc-49d9-b423-5e181b71f22f");
         protected override System.Drawing.Bitmap Icon => Properties.Resources.Define_Joints;
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
@@ -45,7 +47,7 @@ namespace RobotsExtended.Util
             {
                 if (p.SourceCount == 0)
                 {
-                    GH_NumberSlider slider = new GH_NumberSlider();
+                    GH_NumberSlider slider = new();
                     slider.CreateAttributes();
 
                     slider.Attributes.Pivot = new System.Drawing.PointF(
@@ -54,7 +56,7 @@ namespace RobotsExtended.Util
                     slider.Slider.Maximum = limits[1, i];
                     slider.Slider.Minimum = limits[0, i];
                     slider.Slider.DecimalPlaces = 0;
-                    slider.SetSliderValue(0);
+                    slider.SetSliderValue(limits[2, i]);
                     OnPingDocument().AddObject(slider, false);
                     p.AddSource(slider);
                     p.CollectData();
@@ -71,14 +73,23 @@ namespace RobotsExtended.Util
                 double deg;
                 try { deg = Convert.ToDouble(theta[i]); }
                 catch { AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Input not a number."); return; }
-                theta[i] = (deg % 45 == 0 && deg != 0) ? (deg == 180 ? "Pi" : (deg / 180 + " * Pi")) : RhinoMath.ToRadians(deg).ToString();
+
+                double rad = deg * (Math.PI / 180.0);
+                if (!external && i == 2) rad -= 0.5 * Math.PI;
+                rad = -rad;
+                theta[i] = rad % Math.PI == 0 && rad != 0
+                    ? rad / Math.PI + "*Pi"
+                    : (rad % Math.PI == 0.5 * Math.PI
+                        ? rad / Math.PI + "*Pi"
+                        : rad.ToString());
+
             }
-            StringBuilder str = new StringBuilder(theta[0].ToString() + ", " + theta[1].ToString());
+            StringBuilder str = new($"{theta[0]},{theta[1]}");
             if (!external)
             {
                 for (int i = 2; i < 6; i++)
                 {
-                    str.Append(", " + theta[i]);
+                    str.Append("," + theta[i]);
                 }
             }
             DA.SetData(0, str);
@@ -141,10 +152,11 @@ namespace RobotsExtended.Util
          new Param_String { Name = "Axis 5", NickName = "A5", Description = "Degree of rotation for Axis 5", Optional = false },
          new Param_String { Name = "Axis 6", NickName = "A6", Description = "Degree of rotation for Axis 6", Optional = false }
         };
-        readonly int[,] limits = new int[2, 6]
+        readonly int[,] limits = new int[3, 6]
         {
-            {-185,-35,-68,-185,-119,-350},
-            { 185, 135, 210, 185, 119, 350},
+            {-185,-190,-120,-350,-119,-350},
+            { 185, 45, 158, 350, 119, 350},
+            { 0, -120, 140, 0, -20, 0},
         };
     }
 
