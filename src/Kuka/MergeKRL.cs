@@ -1,17 +1,4 @@
-﻿using GH_IO.Serialization;
-using Grasshopper.Kernel.Data;
-using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Types;
-using Grasshopper.Kernel;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace RobotsExtended.Kuka
+﻿namespace RobotsExtended.Kuka
 {
     public class MergeKRL : GH_Component, IGH_VariableParameterComponent
     {
@@ -51,8 +38,8 @@ namespace RobotsExtended.Kuka
             List<string> header =
                 code.Branches[0][0].Value
                 .Split(new string[] { "\r\n", "\r", "\n", Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            Dictionary<string, string> declare = new Dictionary<string, string>();
-            List<string> prog = new List<string>();
+            Dictionary<string, string> declare = [];
+            List<string> prog = [];
             List<string> declOrg = string.Join(Environment.NewLine, code.Branches[1].Select(x => x.Value)).Split(new string[] { "\r\n", "\r", "\n", Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList(); ;
             for (int i = 1; i < declOrg.Count - 1; i++)// Skip RVP+REL and ENDDAT
             {
@@ -69,8 +56,7 @@ namespace RobotsExtended.Kuka
                 prog.Add(code.Branches[2][i].Value);
             }
 
-            List<string> main = new List<string>();
-            main.AddRange(prog);
+            List<string> main = [.. prog];
             if (fold)
                 main.Insert(2, "\r\n;FOLD");
             else
@@ -175,8 +161,8 @@ namespace RobotsExtended.Kuka
         void IGH_VariableParameterComponent.VariableParameterMaintenance() {}
         bool save = false;
         bool fold = false;
-        readonly Param_String param = new Param_String { Name = "Directory", NickName = "P", Description = "Specify Path where file will be saved\nIf not specified, will try to save to Desktop", Optional = true };
-        readonly Param_Boolean param2 = new Param_Boolean { Name = "Save", NickName = "S", Description = "Button or toggle to specify saving", Optional = false };
+        readonly Param_String param = new() { Name = "Directory", NickName = "P", Description = "Specify Path where file will be saved\nIf not specified, will try to save to Desktop", Optional = true };
+        readonly Param_Boolean param2 = new() { Name = "Save", NickName = "S", Description = "Button or toggle to specify saving", Optional = false };
         private void SaveInputs(object sender, EventArgs e)
         {
             RecordUndoEvent("Enable/disable Save param");
@@ -207,7 +193,7 @@ namespace RobotsExtended.Kuka
             return base.Read(reader);
         }
         protected override System.Drawing.Bitmap Icon => Properties.Resources.KRL;
-        public override Guid ComponentGuid => new Guid("309454cf-ea5e-470f-80a8-fc19e3729dfc");
+        public override Guid ComponentGuid => new("309454cf-ea5e-470f-80a8-fc19e3729dfc");
     }
 
 }

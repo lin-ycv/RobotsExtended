@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>12</LangVersion>
+	  <TargetExt>.gha</TargetExt>
+	  <ImplicitUsings>enable</ImplicitUsings>
+	  <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Robots.Rhino" Version="1.6.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="GH_IO.Serialization" />
+    <Using Include="Grasshopper.GUI" />
+    <Using Include="Grasshopper.GUI.Canvas" />
+    <Using Include="Grasshopper.Kernel" />
+    <Using Include="Grasshopper.Kernel.Attributes" />
+    <Using Include="Grasshopper.Kernel.Components" />
+    <Using Include="Grasshopper.Kernel.Data" />
+    <Using Include="Grasshopper.Kernel.Parameters" />
+    <Using Include="Grasshopper.Kernel.Special" />
+    <Using Include="Grasshopper.Kernel.Types" />
+    <Using Include="Rhino" />
+    <Using Include="Rhino.Display" />
+    <Using Include="Rhino.DocObjects" />
+    <Using Include="Rhino.Geometry" />
+    <Using Include="Robots" />
+    <Using Include="Robots.Grasshopper" />
+    <Using Include="System.ComponentModel" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.Net" />
+    <Using Include="System.Net.Sockets" />
+    <Using Include="System.Text" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

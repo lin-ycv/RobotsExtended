@@ -1,24 +1,11 @@
-﻿using GH_IO.Serialization;
-using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel;
-using Robots.Grasshopper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Rhino.Geometry;
-using Robots;
-
-namespace RobotsExtended.Util
+﻿namespace RobotsExtended.Util
 {
     public class UpdateTool : GH_Component, IGH_VariableParameterComponent
     {
         public UpdateTool() : base("Update Tool", "newTCP", "Update the TCP of an exsisting tool", "Robots", "Utility") { }
         //public override GH_Exposure Exposure => GH_Exposure.hidden;
         protected override System.Drawing.Bitmap Icon => Properties.Resources.UpdateTool;
-        public override Guid ComponentGuid => new Guid("92915A29-8636-4670-B21C-756D681789E4");
+        public override Guid ComponentGuid => new("92915A29-8636-4670-B21C-756D681789E4");
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
@@ -40,13 +27,13 @@ namespace RobotsExtended.Util
         {
             GH_Tool input = null;
             DA.GetData(0, ref input);
-            Plane tcp = new Plane();
+            Plane tcp = new();
             DA.GetData(1, ref tcp);
             int? no = null;
             if (controller)
                 DA.GetData(2, ref no);
 
-            GH_Tool tool = new GH_Tool(
+            GH_Tool tool = new(
                 new Tool(
                     tcp,
                     input.Value.Name,

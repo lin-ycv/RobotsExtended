@@ -6,21 +6,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RobotsExtended.Util
+namespace RobotsExtended.Obsolete
 {
-    public class Obsolete_RenderColour : GH_Component
+    [Obsolete("Replace with proper C# instaed of snippet")]
+    public class RenderColour : GH_Component
     {
-        public Obsolete_RenderColour()
+        public RenderColour()
           : base("Render Colour", "Colour",
               "Adds render colour to robot mesh",
               "Robots", "Utility")
         { }
-        public override GH_Exposure Exposure => GH_Exposure.secondary | GH_Exposure.obscure |GH_Exposure.hidden;
+        public override GH_Exposure Exposure => GH_Exposure.secondary | GH_Exposure.obscure | GH_Exposure.hidden;
 
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         { }
 
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         { }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -29,8 +30,8 @@ namespace RobotsExtended.Util
             byte[] binaryRep = Convert.FromBase64String(snip);
             archive.Deserialize_Binary(binaryRep);
             string xmlSnippet = archive.Serialize_Xml();
-            System.Windows.Forms.Clipboard.Clear();
-            System.Windows.Forms.Clipboard.SetText(xmlSnippet);
+            Clipboard.Clear();
+            Clipboard.SetText(xmlSnippet);
             Paste();
             Grasshopper.Instances.ActiveCanvas.Document.ScheduleSolution(10, DeleteThis);
         }
@@ -45,10 +46,10 @@ namespace RobotsExtended.Util
         {
             GH_DocumentIO documentIO = new GH_DocumentIO();
             documentIO.Paste(GH_ClipboardType.System);
-            var thispivot = this.Attributes.Pivot;
+            var thispivot = Attributes.Pivot;
 
-            int smallestX = Int32.MaxValue;
-            int smallestY = Int32.MaxValue;
+            int smallestX = int.MaxValue;
+            int smallestY = int.MaxValue;
             foreach (IGH_DocumentObject obj in documentIO.Document.Objects)
             {
                 var pivot = obj.Attributes.Pivot;
@@ -56,7 +57,7 @@ namespace RobotsExtended.Util
                 if (pivot.Y < smallestY) smallestY = (int)pivot.Y;
             }
 
-            System.Drawing.Size offset = new System.Drawing.Size((int)thispivot.X - smallestX, (int)thispivot.Y - smallestY);
+            Size offset = new Size((int)thispivot.X - smallestX, (int)thispivot.Y - smallestY);
 
             documentIO.Document.TranslateObjects(offset, false);
             documentIO.Document.SelectAll();
@@ -68,7 +69,7 @@ namespace RobotsExtended.Util
             Grasshopper.Instances.ActiveCanvas.Document.UndoUtil.RecordAddObjectEvent("Paste", objs);
             Grasshopper.Instances.ActiveCanvas.Document.ScheduleSolution(10);
         }
-        protected override System.Drawing.Bitmap Icon => Properties.Resources.Colourful;
+        protected override Bitmap Icon => Properties.Resources.Colourful;
         public override Guid ComponentGuid => new Guid("5AE1E121-11B3-499A-AB30-82B02FAD533A");
     }
 

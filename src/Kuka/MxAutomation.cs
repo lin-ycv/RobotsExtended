@@ -1,12 +1,4 @@
-﻿using Grasshopper.Kernel;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RobotsExtended.Kuka
+﻿namespace RobotsExtended.Kuka
 {
     //public class MxAutomation : GH_Component
     //{

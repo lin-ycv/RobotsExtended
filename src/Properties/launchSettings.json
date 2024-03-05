@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "Rhino 8": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Rhino 8\\System\\Rhino.exe",
+      "commandLineArgs": "/netfx /nosplash /notemplate /runscript=\"_-grasshopper Banner Disable Windows Load Window Show _enter\"",
+      "environmentVariables": {
+        "RHINO_PACKAGE_DIRS": "$(ProjectDir)$(OutputPath)"
+      }
+    },
+    "Rhino 7": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Rhino 7\\System\\Rhino.exe",
+      "environmentVariables": {
+        "RHINO_PACKAGE_DIRS": "$(ProjectDir)$(OutputPath)"
+      }
+    }
+  }
+}

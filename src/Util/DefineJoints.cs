@@ -1,18 +1,4 @@
-﻿using GH_IO.Serialization;
-using Grasshopper.Kernel.Parameters;
-using Grasshopper.Kernel.Special;
-using Grasshopper.Kernel;
-using Rhino;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Grasshopper.Kernel.Geometry;
-using Robots;
-
-namespace RobotsExtended.Util
+﻿namespace RobotsExtended.Util
 {
     public class DefJoints : GH_Component, IGH_VariableParameterComponent
     {
@@ -145,13 +131,13 @@ namespace RobotsExtended.Util
         void IGH_VariableParameterComponent.VariableParameterMaintenance() { }
 
         bool external = false;
-        readonly IGH_Param[] parameters = new IGH_Param[4]
-        {
+        readonly IGH_Param[] parameters =
+        [
          new Param_String { Name = "Axis 3", NickName = "A3", Description = "Degree of rotation for Axis 3", Optional = false },
          new Param_String { Name = "Axis 4", NickName = "A4", Description = "Degree of rotation for Axis 4", Optional = false },
          new Param_String { Name = "Axis 5", NickName = "A5", Description = "Degree of rotation for Axis 5", Optional = false },
          new Param_String { Name = "Axis 6", NickName = "A6", Description = "Degree of rotation for Axis 6", Optional = false }
-        };
+        ];
         readonly int[,] limits = new int[3, 6]
         {
             {-185,-190,-120,-350,-119,-350},

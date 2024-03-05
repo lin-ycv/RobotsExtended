@@ -1,20 +1,6 @@
-﻿using Grasshopper.Kernel.Types;
-using Grasshopper.Kernel;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using Rhino.DocObjects;
-using Rhino;
-using Grasshopper.Kernel.Components;
-using Rhino.Display;
-using Rhino.Render;
-using Rhino.Geometry;
-using GH_IO.Types;
-using Rhino.Render.ChangeQueue;
-
-namespace RobotsExtended.Util
+﻿namespace RobotsExtended.Util
 {
-    public class RenderColour : GH_CustomPreviewComponent/*GH_Component*/ /*, IGH_CustomPreviewObject //Rhino8*/
+    public class RenderColour : GH_CustomPreviewComponent
     {
         public RenderColour()
         //: base("Render Colour", "Colour",
@@ -34,7 +20,7 @@ namespace RobotsExtended.Util
         protected override Bitmap Icon => Properties.Resources.Colourful;
 
         private readonly static Color lightBlack = Color.FromArgb(92, 92, 92);
-        private readonly static string[] robotLabels = new string[8] { "Base", "A1", "A2", "A3", "A4", "A5", "A6", "Tool" };
+        private readonly static string[] robotLabels = ["Base", "A1", "A2", "A3", "A4", "A5", "A6", "Tool"];
 
         private BoundingBox _boundingBox;
         public override BoundingBox ClippingBox => _boundingBox;
@@ -65,7 +51,7 @@ namespace RobotsExtended.Util
 
         protected override void BeforeSolveInstance()
         {
-            _items = new List<GH_CustomPreviewItem>();
+            _items = [];
             _boundingBox = BoundingBox.Empty;
             //meshes.Clear();
             //base.BeforeSolveInstance();
@@ -73,8 +59,8 @@ namespace RobotsExtended.Util
         override protected void AfterSolveInstance()
         { }
         protected override void SolveInstance(IGH_DataAccess DA)
-        {          
-            List<GH_Mesh> meshes = new();
+        {
+            List<GH_Mesh> meshes = [];
             DA.GetDataList(1, meshes);
             if (meshes.Count < 8) return;
             Color[] colors = new Color[meshes.Count];
@@ -148,7 +134,7 @@ namespace RobotsExtended.Util
                     layer.ParentLayerId = mainId;
                 }
                 ObjectAttributes att = new() { LayerIndex = index };
-                doc.Objects.AddMesh(meshes[i].Value,att);
+                doc.Objects.AddMesh(meshes[i].Value, att);
             }
 
             void Append(GH_Mesh m, Color c)
@@ -166,9 +152,9 @@ namespace RobotsExtended.Util
         }
         public override void DrawViewportMeshes(IGH_PreviewArgs args)
         {
-            if (this.Locked || _items.Count==0 || args.Document.IsRenderMeshPipelineViewport(args.Display))
+            if (this.Locked || _items.Count == 0 || args.Document.IsRenderMeshPipelineViewport(args.Display))
                 return;
-            if(this.Attributes.Selected)
+            if (this.Attributes.Selected)
             {
                 GH_PreviewMeshArgs args2 = new(args.Viewport, args.Display, args.ShadeMaterial_Selected, args.MeshingParameters);
                 foreach (GH_CustomPreviewItem item in _items)
@@ -191,6 +177,20 @@ namespace RobotsExtended.Util
             //    args.Display.DrawMeshShaded(meshes[i].Value, new DisplayMaterial(colors[i]));
             //base.DrawViewportMeshes(args);
         }
+        //public void AppendCustomGeometry(GH_RenderArgs args)
+        //{
+        //    if (_items == null || _items.Count == 0)
+        //    {
+        //        return;
+        //    }
+
+        //    GH_Document gH_Document = OnPingDocument();
+        //    if (gH_Document != null && (gH_Document.PreviewMode == GH_PreviewMode.Disabled || _items.Count == 0 || gH_Document.PreviewMode == GH_PreviewMode.Wireframe))
+        //        return;
+
+        //    foreach (var item in _items)
+        //        item.PushToRenderPipeline(args);
+        //}
 
         [Obsolete] // For Rhino 7
         public override void AppendRenderGeometry(GH_RenderArgs args)
@@ -204,22 +204,5 @@ namespace RobotsExtended.Util
             //base.AppendRenderGeometry(args);
         }
 
-        //void IGH_CustomPreviewObject.AppendCustomGeometry(GH_RenderArgs args) // For Rhino 8 (Robots targets R7, unable to use R8)
-        //{
-        //    if (_items == null || _items.Count == 0)
-        //    {
-        //        return;
-        //    }
-
-        //    DisplayPipelineAttributes pipelineAttributes = args.PipelineAttributes;
-        //    if ((!IncludeInRender && (pipelineAttributes == null || pipelineAttributes.RealtimeDisplayId != Guid.Empty)))
-        //    {
-        //        return;
-        //    }
-
-        //    foreach (var item in _items)
-        //        item.PushToRenderPipeline(args);
-        //}
     }
-
 }

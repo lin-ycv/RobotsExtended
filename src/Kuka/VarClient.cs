@@ -1,21 +1,10 @@
-﻿using Grasshopper.Kernel;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Net.Sockets;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace RobotsExtended.Kuka
+﻿namespace RobotsExtended.Kuka
 {
     public class KukaVarClient : GH_Component
     {
         public KukaVarClient() : base("Remote KUKA", "Remote", "KukaVarProxy Client. [Requires KukaVarProxy]", "Robots", "Components") { }
         public override GH_Exposure Exposure => GH_Exposure.senary; //| GH_Exposure.obscure;
-        public override Guid ComponentGuid => new Guid("D746BC1B-CA90-401D-ACDC-9320D2AD0844");
+        public override Guid ComponentGuid => new("D746BC1B-CA90-401D-ACDC-9320D2AD0844");
         protected override System.Drawing.Bitmap Icon => Properties.Resources.KukaVarProxyConnect;
         public override void AddedToDocument(GH_Document document)
         {
@@ -76,7 +65,7 @@ namespace RobotsExtended.Kuka
 
         TcpClient client;
         NetworkStream stream = null;
-        NumericUpDown rTO = new NumericUpDown
+        readonly NumericUpDown rTO = new()
         {
             Minimum = 250,
             Maximum = 10000,
@@ -87,14 +76,14 @@ namespace RobotsExtended.Kuka
         BackgroundWorker worker;
         string ip = string.Empty;
         bool bgKeepAlive = true;
-        List<string> log = new List<string>();
+        List<string> log = [];
         bool logNewestOnly = true;
 #if(DEBUG)
         bool debug = false;
 #endif
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            List<string> usercmd = new List<string>();
+            List<string> usercmd = [];
             bool run = false;
             int port = 7000;
             DA.GetData("IP Address", ref ip);
@@ -104,12 +93,10 @@ namespace RobotsExtended.Kuka
 #if (DEBUG)
             if (ip == "0.0.0.0")
             {
-                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
-                {
-                    socket.Connect("8.8.8.8", 65530);
-                    IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                    ip = endPoint.Address.ToString();
-                }
+                using Socket socket = new(AddressFamily.InterNetwork, SocketType.Dgram, 0);
+                socket.Connect("8.8.8.8", 65530);
+                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                ip = endPoint.Address.ToString();
             }
 #endif
             if (run)
@@ -163,7 +150,7 @@ namespace RobotsExtended.Kuka
                     try
                     { tcpmsg = Array.ConvertAll(usercmd[0].Split(' '), s => (byte)int.Parse(s)); }
                     catch
-                    { tcpmsg = new byte[] { 0, 0, 0, 2, 0, 0 }; }
+                    { tcpmsg = [0, 0, 0, 2, 0, 0]; }
                 }
 #else
                 byte[] tcpmsg = EncodeMsg(usercmd);
@@ -186,14 +173,14 @@ namespace RobotsExtended.Kuka
         void KeepAlive(object sender, DoWorkEventArgs e)
         {
             //(ASCII)"$AXIS_ACT"=="0004000C00000924415849535F414354"(HEX) == "0 0 0 12 0 0 9 36 65 88 73 83 95 65 67 84 "(byte)
-            byte[] poke = new byte[] { 100, 100, 0, 2, 0, 0 };
+            byte[] poke = [100, 100, 0, 2, 0, 0];
             while (bgKeepAlive)
             {
                 try
                 {
                     /*if (rKA.Value > rKA.Maximum) rKA.Value = rKA.Maximum;
                     else if (rKA.Value < rKA.Minimum) rKA.Value = rKA.Minimum;*/
-                    System.Threading.Thread.Sleep(10000);//(int)rKA.Value);
+                    Thread.Sleep(10000);//(int)rKA.Value);
                     if (stream == null) break;
                     SendMsg(poke);
                 }
@@ -211,7 +198,7 @@ namespace RobotsExtended.Kuka
         }
         byte[] EncodeMsg(List<string> message)
         {
-            List<byte> msg = new List<byte>();
+            List<byte> msg = [];
             // LittleEndian - no need to shift list to add header (ID and Req Length)
             for (int i = message.Count - 1; i >= 0; i--)
             {
@@ -220,7 +207,7 @@ namespace RobotsExtended.Kuka
                     this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, $"[{i}] is not a variable command, skipped");
                     continue; // Skip if not a variable
                 }*/
-                List<byte> temp = new List<byte>();
+                List<byte> temp = [];
                 for (int c = message[i].Length - 1; c >= -1; c--)
                 {
                     if (c == -1 || message[i][c] == '=')
@@ -228,7 +215,7 @@ namespace RobotsExtended.Kuka
                         int length = temp.Count;
                         msg.AddRange(temp);
                         msg.AddRange(new byte[] { (byte)(length % 256), (byte)(length / 256) });
-                        temp = new List<byte>();
+                        temp = [];
                         continue;
                     }
                     //if (message[i][c] == ' ') continue; // Spaces needed to formate msg correctly
@@ -250,12 +237,12 @@ namespace RobotsExtended.Kuka
             msg.AddRange(new byte[] { (byte)DateTime.Now.Second, (byte)DateTime.Now.Minute });
 
             msg.Reverse();
-            return msg.ToArray();
+            return [.. msg];
         }
         void SendMsg(byte[] tcpmsg)
         {
             if (tcpmsg == null) return;
-            if (logNewestOnly) log = new List<string>();
+            if (logNewestOnly) log = [];
 #if (DEBUG)
             log.Add("_Send (Byte):\r\n" + string.Join(" ", tcpmsg));
 #endif
@@ -275,7 +262,7 @@ namespace RobotsExtended.Kuka
             {
                 //rLength = 11;
                 error = true;
-                response = new byte[] { 78, 111, 32, 82, 101, 115, 112, 111, 110, 115, 101 };
+                response = [78, 111, 32, 82, 101, 115, 112, 111, 110, 115, 101];
             }
             string respString = string.Join(" ", new ArraySegment<byte>(response, 0, rLength).ToArray());
             responseData = (error ? "_Error " : "") + respString;

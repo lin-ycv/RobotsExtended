@@ -1,12 +1,4 @@
-﻿using Grasshopper.Kernel;
-using Robots;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RobotsExtended.Kuka
+﻿namespace RobotsExtended.Kuka
 {
     public class CVEL : GH_Component
     {
@@ -43,7 +35,7 @@ namespace RobotsExtended.Kuka
             DA.SetData(0, command);
         }
         protected override System.Drawing.Bitmap Icon => Properties.Resources.Speed_Approximation;
-        public override Guid ComponentGuid => new Guid("79B3841F-6BCE-4D80-B665-B6DF637C1797");
+        public override Guid ComponentGuid => new("79B3841F-6BCE-4D80-B665-B6DF637C1797");
     }
 
 }
