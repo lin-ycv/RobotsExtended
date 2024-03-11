@@ -2,7 +2,7 @@
 {
     public class UpdateFrame : GH_Component
     {
-        public UpdateFrame() : base("Update Frame", "newBase", "Update frame info", "Robots", "Utility") { }
+        public UpdateFrame() : base("Update frame", "newBase", "Update frame info", "Robots", "Utility") { }
         public override Guid ComponentGuid => new("{3BAA462A-7D1B-401A-B789-2E12B878B6AD}");
         protected override System.Drawing.Bitmap Icon => Properties.Resources.UpdateFrame;
 

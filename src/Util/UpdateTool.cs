@@ -2,7 +2,7 @@
 {
     public class UpdateTool : GH_Component, IGH_VariableParameterComponent
     {
-        public UpdateTool() : base("Update Tool", "newTCP", "Update the TCP of an exsisting tool", "Robots", "Utility") { }
+        public UpdateTool() : base("Update tool", "newTCP", "Update the TCP of an exsisting tool", "Robots", "Utility") { }
         //public override GH_Exposure Exposure => GH_Exposure.hidden;
         protected override System.Drawing.Bitmap Icon => Properties.Resources.UpdateTool;
         public override Guid ComponentGuid => new("92915A29-8636-4670-B21C-756D681789E4");

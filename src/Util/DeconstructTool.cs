@@ -2,7 +2,7 @@
 {
     public class DeconstructTool : GH_Component
     {
-        public DeconstructTool() : base("Deconstruct Tool", "DeTool", "Retrieves properties of an exsisting tool", "Robots", "Utility") { }
+        public DeconstructTool() : base("Deconstruct tool", "DeTool", "Retrieves properties of an exsisting tool", "Robots", "Utility") { }
         protected override Bitmap Icon => Properties.Resources.DeTool;
         public override Guid ComponentGuid => new("753CDC90-7278-45C4-91D4-B476BA34D396");
         readonly string tName = nameof(tName);

@@ -9,9 +9,9 @@
         //{ }
         : base()
         {
-            Name = "Render Colour";
+            Name = "Render colour";
             NickName = "Colour";
-            Description = "Creates colour list for custom preview";
+            Description = "Adds colour to robot mesh";
             Category = "Robots";
             SubCategory = "Utility";
         }
@@ -53,7 +53,6 @@
         {
             _items = [];
             _boundingBox = BoundingBox.Empty;
-            //meshes.Clear();
             //base.BeforeSolveInstance();
         }
         override protected void AfterSolveInstance()
@@ -141,26 +140,26 @@
             {
                 if (!m.IsValid) return;
                 GH_Material material = new(c);
-                GH_CustomPreviewItem item = default;
-                item.Geometry = m;
-                item.Shader = material.Value;
-                item.Colour = material.Value.Diffuse;
-                item.Material = material;
+                GH_CustomPreviewItem item = new()
+                {
+                    Geometry = m,
+                    Shader = material.Value,
+                    Colour = material.Value.Diffuse,
+                    Material = material,
+                };
                 _items.Add(item);
                 _boundingBox.Union(m.Boundingbox);
             }
         }
         public override void DrawViewportMeshes(IGH_PreviewArgs args)
         {
-            if (this.Locked || _items.Count == 0 || args.Document.IsRenderMeshPipelineViewport(args.Display))
+            if (this.Locked || _items.Count == 0)
                 return;
             if (this.Attributes.Selected)
             {
                 GH_PreviewMeshArgs args2 = new(args.Viewport, args.Display, args.ShadeMaterial_Selected, args.MeshingParameters);
                 foreach (GH_CustomPreviewItem item in _items)
                     item.Geometry.DrawViewportMeshes(args2);
-                //for (int i = 0; i < meshes.Count; i++)
-                //    meshes[i].DrawViewportMeshes(args2);
                 return;
             }
             foreach (GH_CustomPreviewItem item in _items)
@@ -168,41 +167,15 @@
                 GH_PreviewMeshArgs args2 = new(args.Viewport, args.Display, item.Shader, args.MeshingParameters);
                 item.Geometry.DrawViewportMeshes(args2);
             }
-            //for (int i = 0; i < meshes.Count; i++)
-            //{
-            //    GH_PreviewMeshArgs args2 = new(args.Viewport, args.Display, new DisplayMaterial(colors[i]), args.MeshingParameters);
-            //    meshes[i].DrawViewportMeshes(args2);
-            //}
-            //for(int i = 0; i<meshes.Count; i++)
-            //    args.Display.DrawMeshShaded(meshes[i].Value, new DisplayMaterial(colors[i]));
-            //base.DrawViewportMeshes(args);
         }
-        //public void AppendCustomGeometry(GH_RenderArgs args)
-        //{
-        //    if (_items == null || _items.Count == 0)
-        //    {
-        //        return;
-        //    }
 
-        //    GH_Document gH_Document = OnPingDocument();
-        //    if (gH_Document != null && (gH_Document.PreviewMode == GH_PreviewMode.Disabled || _items.Count == 0 || gH_Document.PreviewMode == GH_PreviewMode.Wireframe))
-        //        return;
-
-        //    foreach (var item in _items)
-        //        item.PushToRenderPipeline(args);
-        //}
-
-        [Obsolete] // For Rhino 7
+        [Obsolete]
         public override void AppendRenderGeometry(GH_RenderArgs args)
         {
-            GH_Document gH_Document = OnPingDocument();
-            if (gH_Document != null && (gH_Document.PreviewMode == GH_PreviewMode.Disabled || _items.Count == 0 || gH_Document.PreviewMode == GH_PreviewMode.Wireframe))
+            if (_items != null || _items.Count == 0)
                 return;
             foreach (var item in _items)
                 item.PushToRenderPipeline(args);
-                //args.Geomety.Add(item.Value,args.MaterialNormal);
-            //base.AppendRenderGeometry(args);
         }
-
     }
 }

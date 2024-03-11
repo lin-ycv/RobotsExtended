@@ -3,7 +3,7 @@
     public class DefJoints : GH_Component, IGH_VariableParameterComponent
     {
         public DefJoints()
-          : base("Define Joints", "DefJoints",
+          : base("Define joints", "DefJoints",
               "Define joint angle of each axis of the robot in degrees and outputs it as string of radians",
               "Robots", "Utility")
         { }

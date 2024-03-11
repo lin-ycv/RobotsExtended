@@ -5,7 +5,7 @@
         public override Guid ComponentGuid => new("{73D053CD-4013-40D2-BE10-C62F999AB60C}");
         override public GH_Exposure Exposure => GH_Exposure.secondary;
         protected override Bitmap Icon => Properties.Resources.Library;
-        public RobotLibrary() : base("Robot Library", "Library", "Double click to open Robot Library directory", "Robots", "Utility") { }
+        public RobotLibrary() : base("Robot library", "Library", "Double click to open Robot Library directory", "Robots", "Utility") { }
         bool Open = false;
         private static readonly string localPath = FileIO.LocalLibraryPath, downloadPath = FileIO.OnlineLibraryPath;
 

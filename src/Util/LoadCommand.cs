@@ -5,10 +5,9 @@ namespace RobotsExtended.Util
 {
     public class LoadCommand : GH_Component
     {
-        public LoadCommand() : base("Load Command", "Com", "Load predefined commands on the xml config", "Robots", "Utility") { }
+        public LoadCommand() : base("Load command", "Com", "Load predefined commands on the xml config", "Robots", "Components") { }
         public override Guid ComponentGuid => new("{56C786AD-B863-4D81-87FE-6B7F233295A1}");
         protected override Bitmap Icon => Properties.Resources.Command;
-        private static readonly int _Type = 3;
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
@@ -121,7 +120,7 @@ namespace RobotsExtended.Util
                 var manu = command.Attribute(XName.Get("manufacturer"))?.Value;
                 if (input == "true")
                 {
-                    name += val;
+                    name += val ?? throw new Exception("Value (V) requires input");
                     code = code.Replace("?", val);
                 }
 

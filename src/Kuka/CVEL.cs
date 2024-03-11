@@ -3,7 +3,7 @@
     public class CVEL : GH_Component
     {
         public CVEL()
-          : base("Speed Approximation", "CVEL",
+          : base("Speed approximation", "CVEL",
               "Commands the robot to maintain defined speed percentage by zoning (Custom Command)\r\nShould be the first command if in a command group",
               "Robots", "Commands")
         { }
